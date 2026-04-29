@@ -1,45 +1,29 @@
+# Make a backup of the file before you modify it in place
+cp SAU-EEZ-242-v48-0.csv SAU-EEZ-242-v48-0-old.csv
+
 import pandas as pd
-from pathlib import Path
 
+# Load the backup version of the EEZ file
+data_location = 'SAU-EEZ-242-v48-0-old.csv'
 
-INPUT_FILE = Path("SAU-EEZ-242-v48-0.csv")
-BACKUP_FILE = Path("SAU-EEZ-242-v48-0-old.csv")
-OUTPUT_CSV = Path("SAU-EEZ-242-v48-0-cleaned.csv")
-OUTPUT_PARQUET = Path("SAU-EEZ-242-v48-0.parquet")
+# Read the CSV into a dataframe
+df = pd.read_csv(data_location)
 
+# View the current column names / first row before rename
+print(df.head(1))
 
-def main():
-    if not INPUT_FILE.exists():
-        raise FileNotFoundError(f"Input file not found: {INPUT_FILE}")
+# Rename EEZ columns to match the other datasets
+df.rename(
+    columns={
+        "fish_name": "common_name",
+        "country": "fishing_entity"
+    },
+    inplace=True
+)
 
-    df = pd.read_csv(INPUT_FILE)
+# Verify the column names after rename
+print(df.head(1))
 
-    print("EEZ CSV loaded successfully.")
-    print(f"Rows: {len(df):,}")
-
-    print("\nOriginal columns:")
-    print(df.columns.tolist())
-
-    df.to_csv(BACKUP_FILE, index=False)
-
-    df.rename(
-        columns={
-            "fish_name": "common_name",
-            "country": "fishing_entity"
-        },
-        inplace=True
-    )
-
-    print("\nUpdated columns:")
-    print(df.columns.tolist())
-
-    df.to_csv(OUTPUT_CSV, index=False)
-    df.to_parquet(OUTPUT_PARQUET, index=False)
-
-    print(f"\nBackup CSV created: {BACKUP_FILE}")
-    print(f"Cleaned CSV created: {OUTPUT_CSV}")
-    print(f"Parquet file created: {OUTPUT_PARQUET}")
-
-
-if __name__ == "__main__":
-    main()
+# Write the cleaned file to CSV and Parquet
+df.to_csv('SAU-EEZ-242-v48-0.csv', header=True, index=False)
+df.to_parquet('SAU-EEZ-242-v48-0.parquet')
